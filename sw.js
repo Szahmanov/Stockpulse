@@ -1,4 +1,4 @@
-const CACHE = "stockpulse-v1";
+const CACHE = "stockpulse-v2";
 const ASSETS = ["/", "/index.html", "/manifest.json"];
 
 self.addEventListener("install", event => {
@@ -18,6 +18,14 @@ self.addEventListener("activate", event => {
 self.addEventListener("fetch", event => {
   if (event.request.url.includes("/.netlify/functions/")) {
     event.respondWith(fetch(event.request));
+    return;
+  }
+
+  // Network-first for HTML to avoid stale deployments
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match(event.request))
+    );
     return;
   }
 
