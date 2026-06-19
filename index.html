@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>StockPulse AI</title>
+  <meta name="theme-color" content="#FFD600" />
+  <link rel="manifest" href="/manifest.json" />
+
+  <style>
+    :root{
+      --bg:#070A0E;
+      --panel:#11161D;
+      --panel2:#171E27;
+      --text:#F9FAFB;
+      --muted:#9CA3AF;
+      --amber:#FFD600;
+      --amber2:#FFB300;
+      --red:#FF4D4D;
+      --orange:#FF9F1C;
+      --green:#2EE59D;
+      --border:rgba(255,255,255,.1);
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      min-height:100vh;
+      background:
+        radial-gradient(circle at top left, rgba(255,214,0,.18), transparent 32%),
+        radial-gradient(circle at bottom right, rgba(255,179,0,.10), transparent 34%),
+        linear-gradient(180deg,#070A0E,#0A1018 70%,#070A0E);
+      color:var(--text);
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    }
+
+    header{
+      padding:18px 20px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      border-bottom:1px solid var(--border);
+      background:rgba(7,10,14,.86);
+      backdrop-filter:blur(16px);
+      position:sticky;
+      top:0;
+      z-index:20;
+    }
+
+    .logo{
+      display:flex;
+      align-items:center;
+      gap:11px;
+      font-weight:900;
+      letter-spacing:-.03em;
+    }
+
+    .mark{
+      width:40px;
+      height:40px;
+      border-radius:14px;
+      display:grid;
+      place-items:center;
+      background:linear-gradient(135deg,var(--amber),#FFF3A0);
+      color:#111;
+      box-shadow:0 0 28px rgba(255,214,0,.35);
+      font-weight:950;
+    }
+
+    .stagove-btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:9px 14px;
+      border-radius:999px;
+      background:rgba(255,214,0,.10);
+      color:var(--amber);
+      border:1px solid rgba(255,214,0,.35);
+      text-decoration:none;
+      font-weight:850;
+      font-size:.8rem;
+      white-space:nowrap;
+    }
+
+    main{
+      width:100%;
+      max-width:1150px;
+      margin:0 auto;
+      padding:38px 18px 70px;
+    }
+
+    .hero{
+      max-width:850px;
+      margin-bottom:24px;
+    }
+
+    .eyebrow{
+      color:var(--amber);
+      font-size:.72rem;
+      text-transform:uppercase;
+      letter-spacing:.18em;
+      font-weight:900;
+      margin-bottom:12px;
+    }
+
+    h1{
+      margin:0 0 15px;
+      font-size:clamp(2.15rem,7vw,4.6rem);
+      line-height:.98;
+      letter-spacing:-.075em;
+      max-width:900px;
+    }
+
+    .hero p{
+      margin:0;
+      color:var(--muted);
+      font-size:1rem;
+      line-height:1.65;
+      max-width:760px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:minmax(0,1.1fr) minmax(310px,.9fr);
+      gap:18px;
+      align-items:start;
+    }
+
+    .card{
+      background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.025));
+      border:1px solid var(--border);
+      border-radius:24px;
+      padding:22px;
+      box-shadow:0 24px 80px rgba(0,0,0,.25);
+    }
+
+    textarea{
+      width:100%;
+      min-height:310px;
+      resize:vertical;
+      border:1px solid var(--border);
+      border-radius:20px;
+      background:#080C11;
+      color:var(--text);
+      padding:18px;
+      font:500 .95rem/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;
+      outline:none;
+    }
+
+    textarea:focus{
+      border-color:rgba(255,214,0,.55);
+      box-shadow:0 0 0 4px rgba(255,214,0,.08);
+    }
+
+    .actions{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:10px;
+      margin-top:12px;
+    }
+
+    button{
+      border:0;
+      border-radius:16px;
+      padding:14px 18px;
+      background:linear-gradient(135deg,var(--amber),#FFF1A8);
+      color:#121212;
+      font-weight:950;
+      cursor:pointer;
+      font-size:.94rem;
+    }
+
+    button.secondary{
+      background:#202832;
+      color:var(--text);
+    }
+
+    button:disabled{
+      opacity:.5;
+      cursor:not-allowed;
+    }
+
+    .log{
+      display:none;
+      margin-top:15px;
+      background:#05070A;
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:15px;
+      color:var(--amber);
+      font:500 .8rem/1.7 ui-monospace,SFMono-Regular,Menlo,monospace;
+      overflow:auto;
+    }
+
+    .log.show{display:block}
+
+    .result{
+      margin-top:18px;
+      display:grid;
+      gap:14px;
+    }
+
+    .summary{
+      border:1px solid var(--border);
+      border-radius:20px;
+      padding:18px;
+      background:var(--panel2);
+    }
+
+    .summary-grid{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:10px;
+      margin-top:14px;
+    }
+
+    .metric{
+      background:rgba(255,255,255,.045);
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:13px;
+    }
+
+    .metric small{
+      display:block;
+      color:var(--muted);
+      font-size:.72rem;
+      margin-bottom:5px;
+    }
+
+    .metric b{
+      font-size:1.3rem;
+    }
+
+    .product{
+      border:1px solid var(--border);
+      border-radius:20px;
+      padding:16px;
+      background:rgba(255,255,255,.035);
+    }
+
+    .product-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      margin-bottom:12px;
+    }
+
+    .product h3{
+      margin:0 0 5px;
+      font-size:1.1rem;
+    }
+
+    .pill{
+      display:inline-flex;
+      padding:5px 9px;
+      border-radius:999px;
+      font-size:.72rem;
+      font-weight:850;
+      white-space:nowrap;
+    }
+
+    .critical{background:rgba(255,77,77,.14);color:var(--red);border:1px solid rgba(255,77,77,.35)}
+    .warning{background:rgba(255,159,28,.14);color:var(--orange);border:1px solid rgba(255,159,28,.35)}
+    .safe{background:rgba(46,229,157,.13);color:var(--green);border:1px solid rgba(46,229,157,.35)}
+
+    .data{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+      margin:12px 0;
+    }
+
+    .kv{
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:11px;
+      word-break:break-word;
+    }
+
+    .kv small{
+      display:block;
+      color:var(--muted);
+      font-size:.7rem;
+      margin-bottom:5px;
+    }
+
+    .kv b{
+      font-size:.95rem;
+    }
+
+    .explain{
+      color:var(--muted);
+      line-height:1.55;
+      margin:0;
+      font-size:.9rem;
+    }
+
+    .history-item{
+      border-bottom:1px solid var(--border);
+      padding:13px 0;
+    }
+
+    .history-item:last-child{border-bottom:0}
+
+    .muted{color:var(--muted)}
+
+    footer{
+      margin-top:30px;
+      color:var(--muted);
+      font-size:.78rem;
+      line-height:1.55;
+    }
+
+    @media(max-width:850px){
+      .grid{grid-template-columns:1fr}
+      .summary-grid{grid-template-columns:repeat(2,1fr)}
+      .data{grid-template-columns:repeat(2,1fr)}
+      main{padding:30px 14px 60px}
+      .card{padding:18px;border-radius:20px}
+    }
+
+    @media(max-width:500px){
+      header{padding:14px}
+      .logo{font-size:.96rem}
+      .mark{width:34px;height:34px;border-radius:12px}
+      .stagove-btn{font-size:.7rem;padding:8px 10px}
+      h1{font-size:clamp(2rem,10vw,3rem)}
+      .actions{grid-template-columns:1fr}
+      .summary-grid{grid-template-columns:1fr}
+      .data{grid-template-columns:1fr}
+      textarea{min-height:260px}
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <div class="logo">
+    <div class="mark">SP</div>
+    StockPulse AI
+  </div>
+
+  <a class="stagove-btn" href="https://stagove.com" target="_blank" rel="noopener noreferrer">
+    Built by StaGove
+  </a>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="eyebrow">Autonomous Inventory Forecasting Agent</div>
+    <h1>Знай кой продукт ще свърши, преди да стане късно.</h1>
+    <p>
+      Въведи складови наличности, продажби на ден и време за доставка. Агентът сам ще прогнозира
+      кога продуктите ще свършат, кои са критични и колко точно трябва да поръчаш.
+    </p>
+  </section>
+
+  <section class="grid">
+    <div class="card">
+      <textarea id="inventoryInput" placeholder="Пример:
+Protein Bar - stock 120, sales 8/day, lead time 7 days, target 30 days, unit cost 2.50 BGN
+Creatine - stock 40, sales 3/day, lead time 14 days, target 30 days, unit cost 18 BGN
+Whey Protein - stock 15, sales 2/day, lead time 10 days, target 30 days, unit cost 42 BGN"></textarea>
+
+      <div class="actions">
+        <button id="analyzeBtn">Стартирай StockPulse анализ</button>
+        <button class="secondary" onclick="loadExample()">Пример</button>
+      </div>
+
+      <div id="log" class="log"></div>
+      <div id="result" class="result"></div>
+    </div>
+
+    <aside class="card">
+      <h2 style="margin-top:0">Локална история</h2>
+      <p class="muted">
+        Историята се пази само в браузъра. Така агентът може да сравнява бъдещи анализи и да показва промяна в sales velocity.
+      </p>
+      <div id="history"></div>
+      <button class="secondary" onclick="clearHistory()" style="width:100%;margin-top:12px">Изчисти историята</button>
+    </aside>
+  </section>
+
+  <footer>
+    StockPulse AI прави автоматична прогнозна проверка на складови наличности.
+    Данните трябва да се потвърдят от отговорното лице преди реална поръчка.
+  </footer>
+</main>
+
+<script>
+  const input = document.getElementById("inventoryInput");
+  const analyzeBtn = document.getElementById("analyzeBtn");
+  const logBox = document.getElementById("log");
+  const resultBox = document.getElementById("result");
+
+  analyzeBtn.addEventListener("click", analyzeInventory);
+
+  function getHistory(){
+    return JSON.parse(localStorage.getItem("stockpulse_history") || "[]");
+  }
+
+  function saveHistory(report){
+    const history = getHistory();
+    history.unshift(report);
+    localStorage.setItem("stockpulse_history", JSON.stringify(history.slice(0, 12)));
+    renderHistory();
+  }
+
+  function clearHistory(){
+    localStorage.removeItem("stockpulse_history");
+    renderHistory();
+  }
+
+  function renderHistory(){
+    const history = getHistory();
+    const box = document.getElementById("history");
+
+    if(!history.length){
+      box.innerHTML = `<p class="muted">Все още няма анализи.</p>`;
+      return;
+    }
+
+    box.innerHTML = history.map(h => `
+      <div class="history-item">
+        <b>${new Date(h.generatedAt).toLocaleString("bg-BG")}</b>
+        <div class="muted">${h.totals.products} продукта · ${h.totals.criticalCount} критични · ${h.totals.warningCount} рискови</div>
+      </div>
+    `).join("");
+  }
+
+  async function analyzeInventory(){
+    const inventoryText = input.value.trim();
+
+    if(!inventoryText){
+      alert("Въведи складови данни първо.");
+      return;
+    }
+
+    analyzeBtn.disabled = true;
+    resultBox.innerHTML = "";
+    logBox.classList.add("show");
+    logBox.innerHTML = "";
+
+    const steps = [
+      "Активиране на автономен складов анализатор...",
+      "Извличане на продуктови редове, наличности и sales velocity...",
+      "Изчисляване на burn-rate и zero-day прогноза...",
+      "Сравнение с lead time и откриване на критични продукти...",
+      "Генериране на reorder план и приоритети..."
+    ];
+
+    for(const step of steps){
+      await wait(520);
+      logBox.innerHTML += `> ${step}<br>`;
+    }
+
+    try{
+      const history = getHistory().map(h => ({
+        generatedAt: h.generatedAt,
+        products: h.products?.map(p => ({
+          name: p.name,
+          currentStock: p.currentStock,
+          salesPerDay: p.salesPerDay,
+          status: p.status
+        }))
+      }));
+
+      const res = await fetch("/.netlify/functions/analyze", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body:JSON.stringify({ inventoryText, history })
+      });
+
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.error || "Грешка при анализа.");
+
+      renderResult(data);
+      saveHistory(data);
+    }catch(err){
+      resultBox.innerHTML = `<div class="summary"><b>Грешка</b><p>${err.message}</p></div>`;
+    }finally{
+      analyzeBtn.disabled = false;
+    }
+  }
+
+  function renderResult(data){
+    const productsHtml = (data.products || []).map(p => `
+      <div class="product">
+        <div class="product-top">
+          <div>
+            <h3>${p.name}</h3>
+            <div class="muted">${p.sku || "Без SKU"} ${p.supplier ? "· " + p.supplier : ""}</div>
+          </div>
+          <span class="pill ${p.status}">${p.statusLabelBg}</span>
+        </div>
+
+        <div class="data">
+          ${kv("Наличност", p.currentStock)}
+          ${kv("Продажби/ден", p.salesPerDay)}
+          ${kv("Дни до изчерпване", p.daysUntilStockout)}
+          ${kv("Дата на изчерпване", p.stockoutDate || "—")}
+          ${kv("Поръчай до", p.orderByDate || "—")}
+          ${kv("Препоръчана поръчка", p.recommendedOrderQty)}
+        </div>
+
+        <p class="explain">${p.explanationBg}</p>
+      </div>
+    `).join("");
+
+    const actions = data.summary?.topActionsBg?.length
+      ? `<ul>${data.summary.topActionsBg.map(a => `<li>${a}</li>`).join("")}</ul>`
+      : "";
+
+    resultBox.innerHTML = `
+      <div class="summary">
+        <h2 style="margin-top:0">StockPulse доклад</h2>
+        <p>${data.summary?.executiveSummaryBg || ""}</p>
+        <p><b>${data.summary?.riskVerdictBg || ""}</b></p>
+
+        <div class="summary-grid">
+          ${metric("Продукти", data.totals.products)}
+          ${metric("Критични", data.totals.criticalCount)}
+          ${metric("Рискови", data.totals.warningCount)}
+          ${metric("За поръчка", data.totals.totalRecommendedUnits)}
+        </div>
+
+        ${actions ? `<h3>Топ действия</h3>${actions}` : ""}
+      </div>
+
+      ${productsHtml}
+    `;
+  }
+
+  function kv(k,v){
+    return `<div class="kv"><small>${k}</small><b>${v ?? "—"}</b></div>`;
+  }
+
+  function metric(k,v){
+    return `<div class="metric"><small>${k}</small><b>${v ?? 0}</b></div>`;
+  }
+
+  function wait(ms){
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  function loadExample(){
+    input.value = `Business: FitSupply BG
+Currency: BGN
+
+Protein Bar - stock 120, sales 8/day, lead time 7 days, target 30 days, unit cost 2.50
+Creatine Monohydrate - stock 40, sales 3/day, lead time 14 days, target 30 days, unit cost 18
+Whey Protein Vanilla - stock 15, sales 2/day, lead time 10 days, target 30 days, unit cost 42
+Shaker Bottle - stock 300, sales 4/day, lead time 5 days, target 30 days, unit cost 4
+Electrolyte Powder - stock 25, sales 6/day, lead time 8 days, target 30 days, unit cost 9`;
+  }
+
+  renderHistory();
+
+  if("serviceWorker" in navigator){
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  }
+</script>
+</body>
+</html>
