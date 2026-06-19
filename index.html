@@ -3,566 +3,1311 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>StockPulse AI</title>
   <meta name="theme-color" content="#FFD600" />
+  <title>StockPulse AI</title>
   <link rel="manifest" href="/manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
 
   <style>
-    :root{
-      --bg:#070A0E;
-      --panel:#11161D;
-      --panel2:#171E27;
-      --text:#F9FAFB;
-      --muted:#9CA3AF;
-      --amber:#FFD600;
-      --amber2:#FFB300;
-      --red:#FF4D4D;
-      --orange:#FF9F1C;
-      --green:#2EE59D;
-      --border:rgba(255,255,255,.1);
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black:    #07090D;
+      --surface:  #0F1117;
+      --card:     #141820;
+      --border:   #1E2433;
+      --border2:  #252D3E;
+      --muted:    #4A5568;
+      --text:     #E2E8F0;
+      --dim:      #8A9BB5;
+      --yellow:   #FFD600;
+      --yellow2:  #FFC000;
+      --critical: #FF4444;
+      --warning:  #F59E0B;
+      --safe:     #22C55E;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Inter', sans-serif;
     }
 
-    *{box-sizing:border-box}
+    html { scroll-behavior: smooth; }
 
-    body{
-      margin:0;
-      min-height:100vh;
-      background:
-        radial-gradient(circle at top left, rgba(255,214,0,.18), transparent 32%),
-        radial-gradient(circle at bottom right, rgba(255,179,0,.10), transparent 34%),
-        linear-gradient(180deg,#070A0E,#0A1018 70%,#070A0E);
-      color:var(--text);
-      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    body {
+      font-family: var(--sans);
+      background: var(--black);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
     }
 
-    header{
-      padding:18px 20px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      border-bottom:1px solid var(--border);
-      background:rgba(7,10,14,.86);
-      backdrop-filter:blur(16px);
-      position:sticky;
-      top:0;
-      z-index:20;
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 32px;
+      background: rgba(7,9,13,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
     }
 
-    .logo{
-      display:flex;
-      align-items:center;
-      gap:11px;
-      font-weight:900;
-      letter-spacing:-.03em;
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
     }
 
-    .mark{
-      width:40px;
-      height:40px;
-      border-radius:14px;
-      display:grid;
-      place-items:center;
-      background:linear-gradient(135deg,var(--amber),#FFF3A0);
-      color:#111;
-      box-shadow:0 0 28px rgba(255,214,0,.35);
-      font-weight:950;
+    .logo-mark {
+      width: 34px;
+      height: 34px;
+      background: var(--yellow);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono);
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--black);
+      letter-spacing: -0.5px;
     }
 
-    .stagove-btn{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      padding:9px 14px;
-      border-radius:999px;
-      background:rgba(255,214,0,.10);
-      color:var(--amber);
-      border:1px solid rgba(255,214,0,.35);
-      text-decoration:none;
-      font-weight:850;
-      font-size:.8rem;
-      white-space:nowrap;
+    .logo-name {
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--text);
+      letter-spacing: -0.3px;
     }
 
-    main{
-      width:100%;
-      max-width:1150px;
-      margin:0 auto;
-      padding:38px 18px 70px;
+    /* Agent pulse indicator */
+    .agent-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--dim);
     }
 
-    .hero{
-      max-width:850px;
-      margin-bottom:24px;
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--safe);
+      box-shadow: 0 0 6px var(--safe);
+      animation: pulse-glow 2s ease-in-out infinite;
     }
 
-    .eyebrow{
-      color:var(--amber);
-      font-size:.72rem;
-      text-transform:uppercase;
-      letter-spacing:.18em;
-      font-weight:900;
-      margin-bottom:12px;
+    .pulse-dot.thinking {
+      background: var(--yellow);
+      box-shadow: 0 0 8px var(--yellow);
+      animation: pulse-glow-fast 0.6s ease-in-out infinite;
     }
 
-    h1{
-      margin:0 0 15px;
-      font-size:clamp(2.15rem,7vw,4.6rem);
-      line-height:.98;
-      letter-spacing:-.075em;
-      max-width:900px;
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
     }
 
-    .hero p{
-      margin:0;
-      color:var(--muted);
-      font-size:1rem;
-      line-height:1.65;
-      max-width:760px;
+    @keyframes pulse-glow-fast {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(0.8); }
     }
 
-    .grid{
-      display:grid;
-      grid-template-columns:minmax(0,1.1fr) minmax(310px,.9fr);
-      gap:18px;
-      align-items:start;
+    .nav-badge {
+      padding: 6px 14px;
+      background: transparent;
+      border: 1px solid var(--yellow);
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--yellow);
+      text-decoration: none;
+      letter-spacing: 0.3px;
+      transition: background 0.15s;
     }
 
-    .card{
-      background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.025));
-      border:1px solid var(--border);
-      border-radius:24px;
-      padding:22px;
-      box-shadow:0 24px 80px rgba(0,0,0,.25);
+    .nav-badge:hover { background: rgba(255,214,0,0.08); }
+
+    /* ── HERO ── */
+    .hero {
+      padding: 72px 32px 56px;
+      max-width: 1200px;
+      margin: 0 auto;
     }
 
-    textarea{
-      width:100%;
-      min-height:310px;
-      resize:vertical;
-      border:1px solid var(--border);
-      border-radius:20px;
-      background:#080C11;
-      color:var(--text);
-      padding:18px;
-      font:500 .95rem/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;
-      outline:none;
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--yellow);
+      margin-bottom: 24px;
     }
 
-    textarea:focus{
-      border-color:rgba(255,214,0,.55);
-      box-shadow:0 0 0 4px rgba(255,214,0,.08);
+    .eyebrow::before {
+      content: '';
+      display: block;
+      width: 24px;
+      height: 1px;
+      background: var(--yellow);
     }
 
-    .actions{
-      display:grid;
-      grid-template-columns:1fr auto;
-      gap:10px;
-      margin-top:12px;
+    h1 {
+      font-size: clamp(38px, 5.5vw, 72px);
+      font-weight: 900;
+      line-height: 1.04;
+      letter-spacing: -2.5px;
+      color: #fff;
+      max-width: 760px;
+      margin-bottom: 20px;
     }
 
-    button{
-      border:0;
-      border-radius:16px;
-      padding:14px 18px;
-      background:linear-gradient(135deg,var(--amber),#FFF1A8);
-      color:#121212;
-      font-weight:950;
-      cursor:pointer;
-      font-size:.94rem;
+    h1 em {
+      font-style: normal;
+      color: var(--yellow);
     }
 
-    button.secondary{
-      background:#202832;
-      color:var(--text);
+    .hero-sub {
+      font-size: 16px;
+      color: var(--dim);
+      max-width: 500px;
+      line-height: 1.65;
+      margin-bottom: 0;
     }
 
-    button:disabled{
-      opacity:.5;
-      cursor:not-allowed;
+    /* ── MAIN GRID ── */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 16px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 32px 64px;
     }
 
-    .log{
-      display:none;
-      margin-top:15px;
-      background:#05070A;
-      border:1px solid var(--border);
-      border-radius:18px;
-      padding:15px;
-      color:var(--amber);
-      font:500 .8rem/1.7 ui-monospace,SFMono-Regular,Menlo,monospace;
-      overflow:auto;
+    @media (max-width: 900px) {
+      .main-grid { grid-template-columns: 1fr; }
+      nav { padding: 12px 18px; }
+      .hero { padding: 48px 18px 36px; }
+      .main-grid { padding: 0 18px 48px; }
     }
 
-    .log.show{display:block}
-
-    .result{
-      margin-top:18px;
-      display:grid;
-      gap:14px;
+    /* ── INPUT CARD ── */
+    .input-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
     }
 
-    .summary{
-      border:1px solid var(--border);
-      border-radius:20px;
-      padding:18px;
-      background:var(--panel2);
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
     }
 
-    .summary-grid{
-      display:grid;
-      grid-template-columns:repeat(4,1fr);
-      gap:10px;
-      margin-top:14px;
+    .card-title {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--dim);
     }
 
-    .metric{
-      background:rgba(255,255,255,.045);
-      border:1px solid var(--border);
-      border-radius:16px;
-      padding:13px;
+    .line-count {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
     }
 
-    .metric small{
-      display:block;
-      color:var(--muted);
-      font-size:.72rem;
-      margin-bottom:5px;
+    textarea {
+      width: 100%;
+      min-height: 260px;
+      background: transparent;
+      border: none;
+      outline: none;
+      resize: vertical;
+      padding: 20px;
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text);
+      caret-color: var(--yellow);
     }
 
-    .metric b{
-      font-size:1.3rem;
+    textarea::placeholder {
+      color: var(--muted);
+      opacity: 0.6;
     }
 
-    .product{
-      border:1px solid var(--border);
-      border-radius:20px;
-      padding:16px;
-      background:rgba(255,255,255,.035);
+    .card-footer {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 20px;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
     }
 
-    .product-top{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:12px;
-      margin-bottom:12px;
+    .btn-primary {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 13px 24px;
+      background: var(--yellow);
+      color: var(--black);
+      font-family: var(--sans);
+      font-weight: 700;
+      font-size: 14px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      letter-spacing: -0.2px;
     }
 
-    .product h3{
-      margin:0 0 5px;
-      font-size:1.1rem;
+    .btn-primary:hover { background: var(--yellow2); }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .btn-secondary {
+      padding: 13px 18px;
+      background: transparent;
+      color: var(--dim);
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 500;
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+      white-space: nowrap;
     }
 
-    .pill{
-      display:inline-flex;
-      padding:5px 9px;
-      border-radius:999px;
-      font-size:.72rem;
-      font-weight:850;
-      white-space:nowrap;
+    .btn-secondary:hover { border-color: var(--muted); color: var(--text); }
+
+    /* ── AGENT LOG ── */
+    .agent-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
 
-    .critical{background:rgba(255,77,77,.14);color:var(--red);border:1px solid rgba(255,77,77,.35)}
-    .warning{background:rgba(255,159,28,.14);color:var(--orange);border:1px solid rgba(255,159,28,.35)}
-    .safe{background:rgba(46,229,157,.13);color:var(--green);border:1px solid rgba(46,229,157,.35)}
-
-    .data{
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:10px;
-      margin:12px 0;
+    .agent-log {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      max-height: 400px;
+      min-height: 240px;
     }
 
-    .kv{
-      background:rgba(255,255,255,.04);
-      border:1px solid var(--border);
-      border-radius:14px;
-      padding:11px;
-      word-break:break-word;
+    .log-entry {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+      animation: fadeSlideIn 0.3s ease;
     }
 
-    .kv small{
-      display:block;
-      color:var(--muted);
-      font-size:.7rem;
-      margin-bottom:5px;
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    .kv b{
-      font-size:.95rem;
+    .log-time {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      padding-top: 2px;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
 
-    .explain{
-      color:var(--muted);
-      line-height:1.55;
-      margin:0;
-      font-size:.9rem;
+    .log-msg {
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--dim);
     }
 
-    .history-item{
-      border-bottom:1px solid var(--border);
-      padding:13px 0;
+    .log-msg.highlight { color: var(--yellow); }
+    .log-msg.success { color: var(--safe); }
+    .log-msg.error { color: var(--critical); }
+    .log-msg.warn { color: var(--warning); }
+
+    .log-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 180px;
+      gap: 10px;
     }
 
-    .history-item:last-child{border-bottom:0}
-
-    .muted{color:var(--muted)}
-
-    footer{
-      margin-top:30px;
-      color:var(--muted);
-      font-size:.78rem;
-      line-height:1.55;
+    .log-empty-icon {
+      width: 36px;
+      height: 36px;
+      border: 1.5px solid var(--border2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
     }
 
-    @media(max-width:850px){
-      .grid{grid-template-columns:1fr}
-      .summary-grid{grid-template-columns:repeat(2,1fr)}
-      .data{grid-template-columns:repeat(2,1fr)}
-      main{padding:30px 14px 60px}
-      .card{padding:18px;border-radius:20px}
+    .log-empty-text {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.6;
     }
 
-    @media(max-width:500px){
-      header{padding:14px}
-      .logo{font-size:.96rem}
-      .mark{width:34px;height:34px;border-radius:12px}
-      .stagove-btn{font-size:.7rem;padding:8px 10px}
-      h1{font-size:clamp(2rem,10vw,3rem)}
-      .actions{grid-template-columns:1fr}
-      .summary-grid{grid-template-columns:1fr}
-      .data{grid-template-columns:1fr}
-      textarea{min-height:260px}
+    /* History section in agent card */
+    .history-section {
+      border-top: 1px solid var(--border);
+      padding: 14px 16px;
     }
+
+    .history-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 6px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+
+    .history-item:hover { border-color: var(--border2); }
+
+    .history-meta {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--dim);
+    }
+
+    .history-badges {
+      display: flex;
+      gap: 4px;
+    }
+
+    .badge {
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    .badge-critical { background: rgba(255,68,68,0.15); color: var(--critical); }
+    .badge-warning  { background: rgba(245,158,11,0.15); color: var(--warning); }
+    .badge-safe     { background: rgba(34,197,94,0.15);  color: var(--safe); }
+
+    .history-clear {
+      width: 100%;
+      padding: 9px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+      margin-top: 8px;
+    }
+
+    .history-clear:hover { color: var(--critical); border-color: var(--critical); }
+
+    /* ── RESULTS ── */
+    #results { max-width: 1200px; margin: 0 auto; padding: 0 32px 80px; }
+
+    @media (max-width: 900px) { #results { padding: 0 18px 48px; } }
+
+    /* Summary bar */
+    .summary-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+      animation: fadeSlideIn 0.4s ease;
+    }
+
+    .stat-block {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-block::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+    }
+
+    .stat-block.c-critical::before { background: var(--critical); }
+    .stat-block.c-warning::before  { background: var(--warning); }
+    .stat-block.c-safe::before     { background: var(--safe); }
+    .stat-block.c-total::before    { background: var(--yellow); }
+
+    .stat-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-family: var(--mono);
+      font-size: 32px;
+      font-weight: 700;
+      line-height: 1;
+      color: #fff;
+    }
+
+    .stat-block.c-critical .stat-value { color: var(--critical); }
+    .stat-block.c-warning  .stat-value { color: var(--warning); }
+    .stat-block.c-safe     .stat-value { color: var(--safe); }
+
+    /* Executive summary */
+    .exec-summary {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--yellow);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      animation: fadeSlideIn 0.5s ease;
+    }
+
+    .exec-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--yellow);
+      margin-bottom: 10px;
+    }
+
+    .exec-text {
+      font-size: 14px;
+      color: var(--text);
+      line-height: 1.65;
+      margin-bottom: 14px;
+    }
+
+    .exec-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .exec-action {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: rgba(255,214,0,0.07);
+      border: 1px solid rgba(255,214,0,0.2);
+      border-radius: 6px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--yellow);
+    }
+
+    /* Product cards */
+    .products-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .products-title {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--dim);
+    }
+
+    .products-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .product-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 16px;
+      align-items: start;
+      animation: fadeSlideIn 0.35s ease both;
+      cursor: default;
+      transition: border-color 0.15s;
+    }
+
+    .product-card:hover { border-color: var(--border2); }
+
+    .product-card.status-critical { border-left: 3px solid var(--critical); }
+    .product-card.status-warning  { border-left: 3px solid var(--warning); }
+    .product-card.status-safe     { border-left: 3px solid var(--safe); }
+
+    .status-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-top: 4px;
+      flex-shrink: 0;
+    }
+
+    .status-critical .status-indicator {
+      background: var(--critical);
+      box-shadow: 0 0 8px var(--critical);
+      animation: pulse-glow-fast 0.8s ease infinite;
+    }
+
+    .status-warning .status-indicator {
+      background: var(--warning);
+      box-shadow: 0 0 6px var(--warning);
+      animation: pulse-glow 1.5s ease infinite;
+    }
+
+    .status-safe .status-indicator {
+      background: var(--safe);
+    }
+
+    .product-name {
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: -0.3px;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .product-sku {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .product-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .meta-key {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .meta-val {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .meta-val.danger { color: var(--critical); }
+    .meta-val.caution { color: var(--warning); }
+
+    .product-explanation {
+      font-size: 12px;
+      color: var(--dim);
+      line-height: 1.55;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+      grid-column: 1 / -1;
+    }
+
+    .product-action {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .order-qty {
+      text-align: right;
+    }
+
+    .order-qty-num {
+      font-family: var(--mono);
+      font-size: 28px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1;
+    }
+
+    .order-qty-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .order-value {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--dim);
+      text-align: right;
+    }
+
+    .status-badge {
+      padding: 3px 10px;
+      border-radius: 5px;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .sb-critical { background: rgba(255,68,68,0.15); color: var(--critical); }
+    .sb-warning  { background: rgba(245,158,11,0.15); color: var(--warning); }
+    .sb-safe     { background: rgba(34,197,94,0.15);  color: var(--safe); }
+
+    /* Loading skeleton */
+    .skeleton-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      animation: skeleton-pulse 1.4s ease infinite;
+    }
+
+    .skeleton-line {
+      height: 12px;
+      border-radius: 4px;
+      background: var(--border2);
+      margin-bottom: 10px;
+    }
+
+    @keyframes skeleton-pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* Error state */
+    .error-box {
+      background: rgba(255,68,68,0.05);
+      border: 1px solid rgba(255,68,68,0.25);
+      border-radius: 10px;
+      padding: 16px 20px;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--critical);
+      animation: fadeSlideIn 0.3s ease;
+    }
+
+    /* Divider */
+    .results-divider {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .results-divider-line { flex: 1; height: 1px; background: var(--border); }
+    .results-divider-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .footer-note {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+    /* Thinking spinner in button */
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(7,9,13,0.3);
+      border-top-color: var(--black);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Ticker animation for numbers */
+    @keyframes ticker-up {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .ticker { animation: ticker-up 0.3s ease; }
+
+    /* No results yet state */
+    .no-results {
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+
+    /* Grid stagger delays */
+    .product-card:nth-child(1)  { animation-delay: 0.05s; }
+    .product-card:nth-child(2)  { animation-delay: 0.10s; }
+    .product-card:nth-child(3)  { animation-delay: 0.15s; }
+    .product-card:nth-child(4)  { animation-delay: 0.20s; }
+    .product-card:nth-child(5)  { animation-delay: 0.25s; }
+    .product-card:nth-child(6)  { animation-delay: 0.30s; }
+    .product-card:nth-child(7)  { animation-delay: 0.35s; }
+    .product-card:nth-child(8)  { animation-delay: 0.40s; }
   </style>
 </head>
-
 <body>
-<header>
-  <div class="logo">
-    <div class="mark">SP</div>
-    StockPulse AI
+
+<!-- ── NAV ── -->
+<nav>
+  <a class="nav-logo" href="/">
+    <div class="logo-mark">SP</div>
+    <span class="logo-name">StockPulse AI</span>
+  </a>
+  <div class="agent-status">
+    <div class="pulse-dot" id="agentDot"></div>
+    <span id="agentStatusText">AGENT READY</span>
+  </div>
+  <a class="nav-badge" href="https://stagove.com" target="_blank">Built by StaGove</a>
+</nav>
+
+<!-- ── HERO ── -->
+<div class="hero">
+  <div class="eyebrow">Autonomous Inventory Forecasting Agent</div>
+  <h1>Знай кой продукт ще <em>свърши,</em><br>преди да стане късно.</h1>
+  <p class="hero-sub">Въведи складови данни в свободен текст. Агентът извлича, изчислява и сортира по приоритет — без ръчни таблици.</p>
+</div>
+
+<!-- ── MAIN GRID ── -->
+<div class="main-grid">
+
+  <!-- Input card -->
+  <div class="input-card">
+    <div class="card-header">
+      <span class="card-title">// inventory_input.txt</span>
+      <span class="line-count" id="lineCount">0 реда</span>
+    </div>
+    <textarea
+      id="inventoryInput"
+      placeholder="Protein Bar – stock 120, sales 8/day, lead time 7 days, target 30 days, unit cost 2.50 BGN
+Creatine – stock 40, sales 3/day, lead time 14 days, target 30 days, unit cost 18 BGN
+Whey Protein – stock 15, sales 2/day, lead time 10 days, target 30 days, unit cost 42 BGN"
+      spellcheck="false"
+    ></textarea>
+    <div class="card-footer">
+      <button class="btn-primary" id="analyzeBtn" onclick="runAnalysis()">
+        <span id="btnContent">Стартирай анализ</span>
+      </button>
+      <button class="btn-secondary" onclick="loadExample()">Пример</button>
+    </div>
   </div>
 
-  <a class="stagove-btn" href="https://stagove.com" target="_blank" rel="noopener noreferrer">
-    Built by StaGove
-  </a>
-</header>
-
-<main>
-  <section class="hero">
-    <div class="eyebrow">Autonomous Inventory Forecasting Agent</div>
-    <h1>Знай кой продукт ще свърши, преди да стане късно.</h1>
-    <p>
-      Въведи складови наличности, продажби на ден и време за доставка. Агентът сам ще прогнозира
-      кога продуктите ще свършат, кои са критични и колко точно трябва да поръчаш.
-    </p>
-  </section>
-
-  <section class="grid">
-    <div class="card">
-      <textarea id="inventoryInput" placeholder="Пример:
-Protein Bar - stock 120, sales 8/day, lead time 7 days, target 30 days, unit cost 2.50 BGN
-Creatine - stock 40, sales 3/day, lead time 14 days, target 30 days, unit cost 18 BGN
-Whey Protein - stock 15, sales 2/day, lead time 10 days, target 30 days, unit cost 42 BGN"></textarea>
-
-      <div class="actions">
-        <button id="analyzeBtn">Стартирай StockPulse анализ</button>
-        <button class="secondary" onclick="loadExample()">Пример</button>
+  <!-- Agent log card -->
+  <div class="agent-card">
+    <div class="card-header">
+      <span class="card-title">// agent.log</span>
+      <span class="line-count" id="logCount">—</span>
+    </div>
+    <div class="agent-log" id="agentLog">
+      <div class="log-empty" id="logEmpty">
+        <div class="log-empty-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        </div>
+        <div class="log-empty-text">Агентът чака входни данни.<br>Лог ще се появи при анализ.</div>
       </div>
-
-      <div id="log" class="log"></div>
-      <div id="result" class="result"></div>
     </div>
 
-    <aside class="card">
-      <h2 style="margin-top:0">Локална история</h2>
-      <p class="muted">
-        Историята се пази само в браузъра. Така агентът може да сравнява бъдещи анализи и да показва промяна в sales velocity.
-      </p>
-      <div id="history"></div>
-      <button class="secondary" onclick="clearHistory()" style="width:100%;margin-top:12px">Изчисти историята</button>
-    </aside>
-  </section>
+    <!-- History -->
+    <div class="history-section">
+      <div class="history-label">// история</div>
+      <div id="historyList"></div>
+      <button class="history-clear" onclick="clearHistory()">Изчисти историята</button>
+    </div>
+  </div>
 
-  <footer>
-    StockPulse AI прави автоматична прогнозна проверка на складови наличности.
-    Данните трябва да се потвърдят от отговорното лице преди реална поръчка.
-  </footer>
-</main>
+</div>
+
+<!-- ── RESULTS ── -->
+<div id="results"></div>
+
+<!-- Footer -->
+<footer>
+  <span class="footer-note">StockPulse AI прави прогнозна проверка на складови наличности. Данните трябва да се потвърдят от отговорното лице преди реална поръчка.</span>
+</footer>
 
 <script>
-  const input = document.getElementById("inventoryInput");
-  const analyzeBtn = document.getElementById("analyzeBtn");
-  const logBox = document.getElementById("log");
-  const resultBox = document.getElementById("result");
+  // ── State ──
+  let history = [];
+  let isLoading = false;
 
-  analyzeBtn.addEventListener("click", analyzeInventory);
-
-  function getHistory(){
-    return JSON.parse(localStorage.getItem("stockpulse_history") || "[]");
+  // ── Init ──
+  function init() {
+    const saved = localStorage.getItem('stockpulse-history');
+    if (saved) {
+      try { history = JSON.parse(saved); } catch (_) {}
+    }
+    renderHistory();
+    updateLineCount();
+    document.getElementById('inventoryInput').addEventListener('input', updateLineCount);
   }
 
-  function saveHistory(report){
-    const history = getHistory();
-    history.unshift(report);
-    localStorage.setItem("stockpulse_history", JSON.stringify(history.slice(0, 12)));
+  function updateLineCount() {
+    const val = document.getElementById('inventoryInput').value;
+    const lines = val.split('\n').filter(l => l.trim()).length;
+    document.getElementById('lineCount').textContent = `${lines} ${lines === 1 ? 'ред' : 'реда'}`;
+  }
+
+  // ── Agent log ──
+  function addLog(msg, type = '') {
+    const log = document.getElementById('agentLog');
+    const empty = document.getElementById('logEmpty');
+    if (empty) empty.remove();
+
+    const now = new Date();
+    const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+
+    const entry = document.createElement('div');
+    entry.className = 'log-entry';
+    entry.innerHTML = `<span class="log-time">${time}</span><span class="log-msg ${type}">${msg}</span>`;
+    log.appendChild(entry);
+    log.scrollTop = log.scrollHeight;
+
+    const count = log.querySelectorAll('.log-entry').length;
+    document.getElementById('logCount').textContent = `${count} events`;
+  }
+
+  function setAgentStatus(status) {
+    const dot = document.getElementById('agentDot');
+    const txt = document.getElementById('agentStatusText');
+    if (status === 'thinking') {
+      dot.classList.add('thinking');
+      txt.textContent = 'AGENT THINKING';
+    } else if (status === 'done') {
+      dot.classList.remove('thinking');
+      txt.textContent = 'AGENT DONE';
+    } else {
+      dot.classList.remove('thinking');
+      txt.textContent = 'AGENT READY';
+    }
+  }
+
+  function setBtnLoading(loading) {
+    const btn = document.getElementById('analyzeBtn');
+    const content = document.getElementById('btnContent');
+    isLoading = loading;
+    btn.disabled = loading;
+    if (loading) {
+      content.innerHTML = '<div class="spinner"></div> Агентът анализира…';
+    } else {
+      content.textContent = 'Стартирай анализ';
+    }
+  }
+
+  // ── Example ──
+  function loadExample() {
+    document.getElementById('inventoryInput').value =
+`Protein Bar – stock 120, sales 8/day, lead time 7 days, target 30 days, unit cost 2.50 BGN
+Creatine – stock 40, sales 3/day, lead time 14 days, target 30 days, unit cost 18 BGN
+Whey Protein – stock 15, sales 2/day, lead time 10 days, target 30 days, unit cost 42 BGN
+BCAA Powder – stock 200, sales 1/day, lead time 5 days, target 45 days, unit cost 35 BGN
+Pre-Workout – stock 8, sales 3/day, lead time 12 days, target 30 days, unit cost 55 BGN`;
+    updateLineCount();
+    addLog('Заредени примерни данни (5 продукта)', 'highlight');
+  }
+
+  // ── History ──
+  function renderHistory() {
+    const el = document.getElementById('historyList');
+    el.innerHTML = '';
+    if (!history.length) {
+      el.innerHTML = '<div class="log-empty-text" style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:6px 0 10px;">Все още няма анализи.</div>';
+      return;
+    }
+    [...history].reverse().slice(0, 4).forEach((h, i) => {
+      const d = document.createElement('div');
+      d.className = 'history-item';
+      d.innerHTML = `
+        <div class="history-meta">${h.date} · ${h.products} продукта</div>
+        <div class="history-badges">
+          ${h.critical ? `<span class="badge badge-critical">${h.critical}C</span>` : ''}
+          ${h.warning ? `<span class="badge badge-warning">${h.warning}W</span>` : ''}
+          ${h.safe ? `<span class="badge badge-safe">${h.safe}S</span>` : ''}
+        </div>
+      `;
+      d.title = 'Кликни за да заредиш';
+      el.appendChild(d);
+    });
+  }
+
+  function clearHistory() {
+    history = [];
+    localStorage.removeItem('stockpulse-history');
+    renderHistory();
+    addLog('Историята е изчистена', '');
+  }
+
+  function saveToHistory(data) {
+    const entry = {
+      date: new Date().toLocaleDateString('bg-BG'),
+      products: data.totals?.products || 0,
+      critical: data.totals?.criticalCount || 0,
+      warning: data.totals?.warningCount || 0,
+      safe: data.totals?.safeCount || 0
+    };
+    history.push(entry);
+    if (history.length > 8) history.shift();
+    localStorage.setItem('stockpulse-history', JSON.stringify(history));
     renderHistory();
   }
 
-  function clearHistory(){
-    localStorage.removeItem("stockpulse_history");
-    renderHistory();
-  }
+  // ── Analysis ──
+  async function runAnalysis() {
+    if (isLoading) return;
 
-  function renderHistory(){
-    const history = getHistory();
-    const box = document.getElementById("history");
-
-    if(!history.length){
-      box.innerHTML = `<p class="muted">Все още няма анализи.</p>`;
+    const text = document.getElementById('inventoryInput').value.trim();
+    if (!text || text.length < 10) {
+      addLog('ГРЕШКА: Моля въведи складови данни.', 'error');
       return;
     }
 
-    box.innerHTML = history.map(h => `
-      <div class="history-item">
-        <b>${new Date(h.generatedAt).toLocaleString("bg-BG")}</b>
-        <div class="muted">${h.totals.products} продукта · ${h.totals.criticalCount} критични · ${h.totals.warningCount} рискови</div>
-      </div>
-    `).join("");
-  }
+    // Reset results
+    document.getElementById('results').innerHTML = renderSkeletons();
+    setBtnLoading(true);
+    setAgentStatus('thinking');
 
-  async function analyzeInventory(){
-    const inventoryText = input.value.trim();
+    addLog('Получени входни данни → парсиране…', 'highlight');
 
-    if(!inventoryText){
-      alert("Въведи складови данни първо.");
-      return;
-    }
-
-    analyzeBtn.disabled = true;
-    resultBox.innerHTML = "";
-    logBox.classList.add("show");
-    logBox.innerHTML = "";
-
-    const steps = [
-      "Активиране на автономен складов анализатор...",
-      "Извличане на продуктови редове, наличности и sales velocity...",
-      "Изчисляване на burn-rate и zero-day прогноза...",
-      "Сравнение с lead time и откриване на критични продукти...",
-      "Генериране на reorder план и приоритети..."
-    ];
-
-    for(const step of steps){
-      await wait(520);
-      logBox.innerHTML += `> ${step}<br>`;
-    }
-
-    try{
-      const history = getHistory().map(h => ({
-        generatedAt: h.generatedAt,
-        products: h.products?.map(p => ({
-          name: p.name,
-          currentStock: p.currentStock,
-          salesPerDay: p.salesPerDay,
-          status: p.status
-        }))
-      }));
-
-      const res = await fetch("/.netlify/functions/analyze", {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body:JSON.stringify({ inventoryText, history })
+    try {
+      addLog('Извикване на LLM за структурен парсинг…');
+      const res = await fetch('/.netlify/functions/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inventoryText: text, history: history })
       });
 
       const data = await res.json();
-      if(!res.ok) throw new Error(data.error || "Грешка при анализа.");
 
-      renderResult(data);
-      saveHistory(data);
-    }catch(err){
-      resultBox.innerHTML = `<div class="summary"><b>Грешка</b><p>${err.message}</p></div>`;
-    }finally{
-      analyzeBtn.disabled = false;
+      if (!res.ok) {
+        throw new Error(data.error || 'Грешка от сървъра.');
+      }
+
+      addLog(`Открити продукти: ${data.totals?.products || 0}`, '');
+      addLog(`Критични: ${data.totals?.criticalCount || 0} · Рискови: ${data.totals?.warningCount || 0} · Стабилни: ${data.totals?.safeCount || 0}`, data.totals?.criticalCount > 0 ? 'warn' : 'success');
+      addLog('Изчисляване на дати за поръчка…');
+      addLog('Генериране на управленско резюме…');
+      addLog('Анализът е завършен ✓', 'success');
+
+      saveToHistory(data);
+      renderResults(data);
+      setAgentStatus('done');
+
+    } catch (err) {
+      addLog(`ГРЕШКА: ${err.message}`, 'error');
+      document.getElementById('results').innerHTML = `<div class="error-box" style="max-width:1200px;margin:0 auto 32px;padding:0 32px;">&gt; ERROR: ${err.message}</div>`;
+      setAgentStatus('ready');
+    } finally {
+      setBtnLoading(false);
     }
   }
 
-  function renderResult(data){
-    const productsHtml = (data.products || []).map(p => `
-      <div class="product">
-        <div class="product-top">
-          <div>
-            <h3>${p.name}</h3>
-            <div class="muted">${p.sku || "Без SKU"} ${p.supplier ? "· " + p.supplier : ""}</div>
-          </div>
-          <span class="pill ${p.status}">${p.statusLabelBg}</span>
+  function renderSkeletons() {
+    return `<div style="max-width:1200px;margin:0 auto;padding:0 32px 80px;">
+      ${[1,2,3].map(() => `
+        <div class="skeleton-card" style="margin-bottom:10px;">
+          <div class="skeleton-line" style="width:35%;margin-bottom:14px;"></div>
+          <div class="skeleton-line" style="width:70%;"></div>
+          <div class="skeleton-line" style="width:50%;"></div>
         </div>
+      `).join('')}
+    </div>`;
+  }
 
-        <div class="data">
-          ${kv("Наличност", p.currentStock)}
-          ${kv("Продажби/ден", p.salesPerDay)}
-          ${kv("Дни до изчерпване", p.daysUntilStockout)}
-          ${kv("Дата на изчерпване", p.stockoutDate || "—")}
-          ${kv("Поръчай до", p.orderByDate || "—")}
-          ${kv("Препоръчана поръчка", p.recommendedOrderQty)}
-        </div>
+  function renderResults(data) {
+    const { totals, summary, products, businessName, currency, generatedAt,
+            orderDraft, orderDraftTriggered, dataWarnings, agentLog } = data;
+    const cur = currency || '';
+    const genDate = generatedAt ? new Date(generatedAt).toLocaleString('bg-BG') : '';
 
-        <p class="explain">${p.explanationBg}</p>
+    // Replay server-side agent log into UI log
+    if (Array.isArray(agentLog)) {
+      agentLog.forEach(entry => {
+        const typeMap = { DECISION: 'highlight', COMPLETE: 'success', ORDER_DRAFT: 'warn', SELF_CHECK: '', PARSE: '', CALCULATE_RISK: '', SUMMARY: '', ORDER_DRAFT_ERROR: 'error' };
+        addLog(`[${entry.step}] ${entry.detail}`, typeMap[entry.step] || '');
+      });
+    }
+
+    let html = `
+      <div class="results-divider" style="max-width:1200px;margin:0 auto 24px;padding:0 32px;">
+        <div class="results-divider-line"></div>
+        <span class="results-divider-label">// РЕЗУЛТАТИ ${businessName ? '· ' + businessName : ''} · ${genDate}</span>
+        <div class="results-divider-line"></div>
       </div>
-    `).join("");
-
-    const actions = data.summary?.topActionsBg?.length
-      ? `<ul>${data.summary.topActionsBg.map(a => `<li>${a}</li>`).join("")}</ul>`
-      : "";
-
-    resultBox.innerHTML = `
-      <div class="summary">
-        <h2 style="margin-top:0">StockPulse доклад</h2>
-        <p>${data.summary?.executiveSummaryBg || ""}</p>
-        <p><b>${data.summary?.riskVerdictBg || ""}</b></p>
-
-        <div class="summary-grid">
-          ${metric("Продукти", data.totals.products)}
-          ${metric("Критични", data.totals.criticalCount)}
-          ${metric("Рискови", data.totals.warningCount)}
-          ${metric("За поръчка", data.totals.totalRecommendedUnits)}
-        </div>
-
-        ${actions ? `<h3>Топ действия</h3>${actions}` : ""}
-      </div>
-
-      ${productsHtml}
     `;
+
+    html += `<div style="max-width:1200px;margin:0 auto;padding:0 32px;">`;
+
+    // Data warnings
+    if (dataWarnings && dataWarnings.length) {
+      html += `<div style="background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.25);border-radius:10px;padding:14px 18px;margin-bottom:16px;animation:fadeSlideIn .3s ease;">
+        ${dataWarnings.map(w => `<div style="font-family:var(--mono);font-size:12px;color:var(--warning);margin-bottom:4px;">⚠ ${esc(w)}</div>`).join('')}
+      </div>`;
+    }
+
+    // Summary bar
+    html += `<div class="summary-bar">
+        <div class="stat-block c-total">
+          <div class="stat-label">Продукти</div>
+          <div class="stat-value ticker">${totals.products}</div>
+        </div>
+        <div class="stat-block c-critical">
+          <div class="stat-label">Критични</div>
+          <div class="stat-value ticker">${totals.criticalCount}</div>
+        </div>
+        <div class="stat-block c-warning">
+          <div class="stat-label">Рискови</div>
+          <div class="stat-value ticker">${totals.warningCount}</div>
+        </div>
+        <div class="stat-block c-safe">
+          <div class="stat-label">Стабилни</div>
+          <div class="stat-value ticker">${totals.safeCount}</div>
+        </div>
+        ${totals.estimatedOrderValue > 0 ? `
+        <div class="stat-block c-total">
+          <div class="stat-label">Прогн. поръчка</div>
+          <div class="stat-value ticker" style="font-size:22px;padding-top:4px;">${totals.estimatedOrderValue.toLocaleString('bg-BG')} ${cur}</div>
+        </div>` : ''}
+      </div>`;
+
+    // Executive summary
+    if (summary?.executiveSummaryBg) {
+      const actions = Array.isArray(summary.topActionsBg) ? summary.topActionsBg : [];
+      html += `<div class="exec-summary">
+        <div class="exec-label">// AI РЕЗЮМЕ · ${esc(summary.riskVerdictBg || '')}</div>
+        <div class="exec-text">${esc(summary.executiveSummaryBg)}</div>
+        ${actions.length ? `<div class="exec-actions">${actions.map(a => `<div class="exec-action"><span>→</span>${esc(a)}</div>`).join('')}</div>` : ''}
+      </div>`;
+    }
+
+    // ── AUTONOMOUS ORDER DRAFT (agent-triggered) ──
+    if (orderDraftTriggered && orderDraft) {
+      const urgencyColor = orderDraft.urgencyLevel === 'IMMEDIATE' ? 'var(--critical)' : orderDraft.urgencyLevel === 'HIGH' ? 'var(--warning)' : 'var(--yellow)';
+      html += `
+      <div style="background:var(--card);border:1px solid var(--border);border-left:3px solid ${urgencyColor};border-radius:12px;padding:20px 24px;margin-bottom:24px;animation:fadeSlideIn .5s ease;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+          <div>
+            <div style="font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:${urgencyColor};margin-bottom:6px;">
+              // АГЕНТЪТ АВТОМАТИЧНО ГЕНЕРИРА ПОРЪЧКА
+            </div>
+            <div style="font-weight:700;font-size:16px;letter-spacing:-.3px;color:#fff;">${esc(orderDraft.orderDraftTitle || 'Order Draft')}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="padding:4px 12px;border-radius:6px;font-family:var(--mono);font-size:11px;font-weight:700;background:${urgencyColor}22;color:${urgencyColor};">${esc(orderDraft.urgencyLevel)}</span>
+            ${orderDraft.totalEstimatedValue ? `<span style="font-family:var(--mono);font-size:13px;color:var(--dim);">${orderDraft.totalEstimatedValue.toLocaleString('bg-BG')} ${cur}</span>` : ''}
+          </div>
+        </div>
+
+        ${orderDraft.agentNote ? `<div style="font-family:var(--mono);font-size:11px;color:var(--dim);margin-bottom:16px;padding:10px 14px;background:var(--surface);border-radius:8px;">ℹ ${esc(orderDraft.agentNote)}</div>` : ''}
+
+        ${Array.isArray(orderDraft.recommendedActions) && orderDraft.recommendedActions.length ? `
+        <div style="margin-bottom:16px;">
+          <div style="font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Приоритетни действия</div>
+          ${orderDraft.recommendedActions.map((a, i) => `
+            <div style="display:flex;gap:14px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);">
+              <span style="font-family:var(--mono);font-size:11px;color:var(--muted);padding-top:1px;flex-shrink:0;">${String(i+1).padStart(2,'0')}</span>
+              <div style="flex:1;">
+                <div style="font-size:13px;color:var(--text);margin-bottom:3px;">${esc(a.action)}</div>
+                <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                  <span style="font-family:var(--mono);font-size:11px;color:${urgencyColor};">до ${esc(a.deadline)}</span>
+                  ${a.estimatedValue ? `<span style="font-family:var(--mono);font-size:11px;color:var(--dim);">${a.estimatedValue.toLocaleString('bg-BG')} ${cur}</span>` : ''}
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>` : ''}
+
+        ${Array.isArray(orderDraft.supplierGroups) && orderDraft.supplierGroups.length ? `
+        <div>
+          <div style="font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">По доставчик</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;">
+            ${orderDraft.supplierGroups.map(g => `
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
+                <div style="font-weight:600;font-size:13px;color:#fff;margin-bottom:6px;">${esc(g.supplier)}</div>
+                <div style="font-family:var(--mono);font-size:11px;color:var(--dim);margin-bottom:4px;">${(g.products||[]).map(esc).join(', ')}</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+                  <span style="font-family:var(--mono);font-size:12px;color:var(--text);">${g.totalQty} бр.</span>
+                  ${g.totalValue ? `<span style="font-family:var(--mono);font-size:12px;color:var(--yellow);">${g.totalValue.toLocaleString('bg-BG')} ${cur}</span>` : ''}
+                </div>
+                <div style="font-family:var(--mono);font-size:10px;color:${urgencyColor};margin-top:4px;">до ${esc(g.orderBy)}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>` : ''}
+      </div>`;
+    }
+
+    // Products
+    html += `<div class="products-header">
+        <span class="products-title">// Продуктов регистър — сортиран по приоритет</span>
+      </div>
+      <div class="products-grid">
+        ${products.map(p => renderProductCard(p, cur)).join('')}
+      </div>
+    </div>`;
+
+    document.getElementById('results').innerHTML = html;
   }
 
-  function kv(k,v){
-    return `<div class="kv"><small>${k}</small><b>${v ?? "—"}</b></div>`;
+  function renderProductCard(p, cur) {
+    const statusClass = `status-${p.status}`;
+    const sbClass = `sb-${p.status}`;
+    const daysColor = p.status === 'critical' ? 'danger' : (p.status === 'warning' ? 'caution' : '');
+
+    const stockout = p.stockoutDate || '—';
+    const orderBy = p.orderByDate || '—';
+
+    return `<div class="product-card ${statusClass}">
+      <div class="status-indicator"></div>
+
+      <div>
+        <div class="product-name">${esc(p.name)}</div>
+        ${p.sku ? `<div class="product-sku">SKU: ${esc(p.sku)}${p.supplier ? ' · ' + esc(p.supplier) : ''}</div>` : ''}
+        <div class="product-meta">
+          <div class="meta-item">
+            <span class="meta-key">В наличност</span>
+            <span class="meta-val">${p.currentStock} бр.</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-key">Продажби/ден</span>
+            <span class="meta-val">${p.salesPerDay}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-key">До изчерпване</span>
+            <span class="meta-val ${daysColor}">${p.daysUntilStockout >= 900 ? '∞' : p.daysUntilStockout + ' дни'}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-key">Дата изчерпване</span>
+            <span class="meta-val ${daysColor}">${stockout}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-key">Поръчай до</span>
+            <span class="meta-val ${p.status === 'critical' ? 'danger' : ''}">${orderBy}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-key">Lead time</span>
+            <span class="meta-val">${p.leadTimeDays} дни</span>
+          </div>
+        </div>
+        <div class="product-explanation">${esc(p.explanationBg)}</div>
+      </div>
+
+      <div class="product-action">
+        <div class="order-qty">
+          <div class="order-qty-num">${p.recommendedOrderQty}</div>
+          <div class="order-qty-label">за поръчка</div>
+        </div>
+        ${p.estimatedOrderValue !== null ? `<div class="order-value">${p.estimatedOrderValue.toLocaleString('bg-BG')} ${cur}</div>` : ''}
+        <span class="status-badge ${sbClass}">${esc(p.statusLabelBg)}</span>
+      </div>
+    </div>`;
   }
 
-  function metric(k,v){
-    return `<div class="metric"><small>${k}</small><b>${v ?? 0}</b></div>`;
+  function esc(s) {
+    if (!s) return '';
+    return String(s)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
   }
 
-  function wait(ms){
-    return new Promise(resolve => setTimeout(resolve, ms));
+  // ── Service Worker ──
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
   }
 
-  function loadExample(){
-    input.value = `Business: FitSupply BG
-Currency: BGN
-
-Protein Bar - stock 120, sales 8/day, lead time 7 days, target 30 days, unit cost 2.50
-Creatine Monohydrate - stock 40, sales 3/day, lead time 14 days, target 30 days, unit cost 18
-Whey Protein Vanilla - stock 15, sales 2/day, lead time 10 days, target 30 days, unit cost 42
-Shaker Bottle - stock 300, sales 4/day, lead time 5 days, target 30 days, unit cost 4
-Electrolyte Powder - stock 25, sales 6/day, lead time 8 days, target 30 days, unit cost 9`;
-  }
-
-  renderHistory();
-
-  if("serviceWorker" in navigator){
-    navigator.serviceWorker.register("/sw.js").catch(() => {});
-  }
+  init();
 </script>
 </body>
 </html>
