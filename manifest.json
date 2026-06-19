@@ -1,0 +1,19 @@
+{
+  "name": "StockPulse AI",
+  "short_name": "StockPulse",
+  "description": "Autonomous inventory forecasting agent by StaGove",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#070A0E",
+  "theme_color": "#FFD600",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
