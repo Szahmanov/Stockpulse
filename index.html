@@ -793,6 +793,69 @@
       color: var(--muted);
     }
 
+
+    /* ── TABS ── */
+    .tab-btn {
+      padding: 5px 12px;
+      background: transparent;
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tab-btn.active {
+      background: var(--yellow);
+      border-color: var(--yellow);
+      color: var(--black);
+      font-weight: 700;
+    }
+
+    /* ── DROP ZONE ── */
+    #dropZone {
+      border: 1.5px dashed var(--border2);
+      border-radius: 10px;
+      padding: 32px 20px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      min-height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #dropZone:hover, #dropZone.drag-over {
+      border-color: var(--yellow);
+      background: rgba(255,214,0,0.04);
+    }
+    .drop-icon {
+      width: 52px;
+      height: 52px;
+      border: 1.5px solid var(--border2);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      margin: 0 auto 14px;
+    }
+    .drop-title {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text);
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .drop-sub {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.6;
+    }
+    #dropZoneContent { width: 100%; }
+
     /* Scrollbar */
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -866,21 +929,48 @@
   <!-- Input card -->
   <div class="input-card">
     <div class="card-header">
-      <span class="card-title">// inventory_input.txt</span>
-      <span class="line-count" id="lineCount">0 реда</span>
+      <span class="card-title">// inventory_input</span>
+      <div style="display:flex;gap:6px;">
+        <button class="tab-btn active" id="tabText" onclick="switchTab('text')">Текст</button>
+        <button class="tab-btn" id="tabImage" onclick="switchTab('image')">📷 Снимка</button>
+      </div>
     </div>
-    <textarea
-      id="inventoryInput"
-      placeholder="Protein Bar – stock 120, sales 8/day, lead time 7 days, target 30 days, unit cost 2.50 BGN
+
+    <!-- Text tab -->
+    <div id="panelText">
+      <textarea
+        id="inventoryInput"
+        placeholder="Protein Bar – stock 120, sales 8/day, lead time 7 days, target 30 days, unit cost 2.50 BGN
 Creatine – stock 40, sales 3/day, lead time 14 days, target 30 days, unit cost 18 BGN
 Whey Protein – stock 15, sales 2/day, lead time 10 days, target 30 days, unit cost 42 BGN"
-      spellcheck="false"
-    ></textarea>
+        spellcheck="false"
+      ></textarea>
+    </div>
+
+    <!-- Image tab -->
+    <div id="panelImage" style="display:none;padding:20px;">
+      <div id="dropZone" onclick="document.getElementById('fileInput').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+        <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFileSelect(event)" />
+        <div id="dropZoneContent">
+          <div class="drop-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <div class="drop-title">Качи снимка на склада</div>
+          <div class="drop-sub">Снимка на разпечатка, ръкописен лист, Excel screenshot<br>JPG · PNG · WebP — до 10MB</div>
+        </div>
+        <div id="imagePreviewWrap" style="display:none;text-align:center;">
+          <img id="imagePreview" style="max-width:100%;max-height:200px;border-radius:8px;object-fit:contain;" />
+          <div id="imageName" style="font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:8px;"></div>
+          <button onclick="clearImage(event)" style="margin-top:8px;padding:5px 14px;background:transparent;border:1px solid var(--border2);border-radius:6px;font-family:var(--mono);font-size:11px;color:var(--muted);cursor:pointer;">Смени снимката</button>
+        </div>
+      </div>
+    </div>
+
     <div class="card-footer">
       <button class="btn-primary" id="analyzeBtn" onclick="runAnalysis()">
         <span id="btnContent">Стартирай анализ</span>
       </button>
-      <button class="btn-secondary" onclick="loadExample()">Пример</button>
+      <button class="btn-secondary" id="exampleBtn" onclick="loadExample()">Пример</button>
     </div>
   </div>
 
@@ -921,6 +1011,8 @@ Whey Protein – stock 15, sales 2/day, lead time 10 days, target 30 days, unit 
   // ── State ──
   let history = [];
   let isLoading = false;
+  let currentTab = 'text';
+  let uploadedImage = null;
 
   // ── Init ──
   function init() {
@@ -929,14 +1021,58 @@ Whey Protein – stock 15, sales 2/day, lead time 10 days, target 30 days, unit 
       try { history = JSON.parse(saved); } catch (_) {}
     }
     renderHistory();
-    updateLineCount();
-    document.getElementById('inventoryInput').addEventListener('input', updateLineCount);
   }
 
-  function updateLineCount() {
-    const val = document.getElementById('inventoryInput').value;
-    const lines = val.split('\n').filter(l => l.trim()).length;
-    document.getElementById('lineCount').textContent = `${lines} ${lines === 1 ? 'ред' : 'реда'}`;
+  // ── Tab switching ──
+  function switchTab(tab) {
+    currentTab = tab;
+    document.getElementById('panelText').style.display  = tab === 'text'  ? '' : 'none';
+    document.getElementById('panelImage').style.display = tab === 'image' ? '' : 'none';
+    document.getElementById('tabText').classList.toggle('active',  tab === 'text');
+    document.getElementById('tabImage').classList.toggle('active', tab === 'image');
+    document.getElementById('exampleBtn').style.display = tab === 'text' ? '' : 'none';
+  }
+
+  // ── Drag & Drop ──
+  function handleDragOver(e) {
+    e.preventDefault();
+    document.getElementById('dropZone').classList.add('drag-over');
+  }
+  function handleDragLeave(e) {
+    document.getElementById('dropZone').classList.remove('drag-over');
+  }
+  function handleDrop(e) {
+    e.preventDefault();
+    document.getElementById('dropZone').classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) processImageFile(file);
+  }
+  function handleFileSelect(e) {
+    const file = e.target.files[0];
+    if (file) processImageFile(file);
+  }
+  function processImageFile(file) {
+    const allowed = ['image/jpeg','image/jpg','image/png','image/webp'];
+    if (!allowed.includes(file.type)) { addLog('ГРЕШКА: Само JPG, PNG, WebP снимки.', 'error'); return; }
+    if (file.size > 10 * 1024 * 1024) { addLog('ГРЕШКА: Снимката е над 10MB.', 'error'); return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target.result;
+      uploadedImage = { base64: dataUrl.split(',')[1], type: file.type, name: file.name };
+      document.getElementById('dropZoneContent').style.display = 'none';
+      document.getElementById('imagePreviewWrap').style.display = '';
+      document.getElementById('imagePreview').src = dataUrl;
+      document.getElementById('imageName').textContent = file.name;
+      addLog('Снимка заредена: ' + file.name, 'highlight');
+    };
+    reader.readAsDataURL(file);
+  }
+  function clearImage(e) {
+    e.stopPropagation();
+    uploadedImage = null;
+    document.getElementById('fileInput').value = '';
+    document.getElementById('dropZoneContent').style.display = '';
+    document.getElementById('imagePreviewWrap').style.display = 'none';
   }
 
   // ── Agent log ──
@@ -993,7 +1129,7 @@ Creatine – stock 40, sales 3/day, lead time 14 days, target 30 days, unit cost
 Whey Protein – stock 15, sales 2/day, lead time 10 days, target 30 days, unit cost 42 BGN
 BCAA Powder – stock 200, sales 1/day, lead time 5 days, target 45 days, unit cost 35 BGN
 Pre-Workout – stock 8, sales 3/day, lead time 12 days, target 30 days, unit cost 55 BGN`;
-    updateLineCount();
+
     addLog('Заредени примерни данни (5 продукта)', 'highlight');
   }
 
@@ -1047,34 +1183,49 @@ Pre-Workout – stock 8, sales 3/day, lead time 12 days, target 30 days, unit co
     if (isLoading) return;
 
     const text = document.getElementById('inventoryInput').value.trim();
-    if (!text || text.length < 10) {
+    const isImageMode = currentTab === 'image';
+
+    if (isImageMode && !uploadedImage) {
+      addLog('ГРЕШКА: Качи снимка преди анализ.', 'error');
+      return;
+    }
+    if (!isImageMode && text.length < 10) {
       addLog('ГРЕШКА: Моля въведи складови данни.', 'error');
       return;
     }
 
-    // Reset results
     document.getElementById('results').innerHTML = renderSkeletons();
     setBtnLoading(true);
     setAgentStatus('thinking');
 
-    addLog('Получени входни данни → парсиране…', 'highlight');
+    if (isImageMode) {
+      addLog('Снимка получена → Vision AI анализ…', 'highlight');
+    } else {
+      addLog('Получени входни данни → парсиране…', 'highlight');
+    }
 
     try {
-      addLog('Извикване на LLM за структурен парсинг…');
+      const payload = { history };
+      if (isImageMode) {
+        payload.imageBase64 = uploadedImage.base64;
+        payload.imageType   = uploadedImage.type;
+        addLog('Изпращане към Groq Vision (llama-4-scout)…');
+      } else {
+        payload.inventoryText = text;
+        addLog('Извикване на LLM за структурен парсинг…');
+      }
+
       const res = await fetch('/.netlify/functions/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ inventoryText: text, history: history })
+        body: JSON.stringify(payload)
       });
 
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Грешка от сървъра.');
 
-      if (!res.ok) {
-        throw new Error(data.error || 'Грешка от сървъра.');
-      }
-
-      addLog(`Открити продукти: ${data.totals?.products || 0}`, '');
-      addLog(`Критични: ${data.totals?.criticalCount || 0} · Рискови: ${data.totals?.warningCount || 0} · Стабилни: ${data.totals?.safeCount || 0}`, data.totals?.criticalCount > 0 ? 'warn' : 'success');
+      addLog('Открити продукти: ' + (data.totals?.products || 0), '');
+      addLog('Критични: ' + (data.totals?.criticalCount || 0) + ' · Рискови: ' + (data.totals?.warningCount || 0) + ' · Стабилни: ' + (data.totals?.safeCount || 0), data.totals?.criticalCount > 0 ? 'warn' : 'success');
       addLog('Изчисляване на дати за поръчка…');
       addLog('Генериране на управленско резюме…');
       addLog('Анализът е завършен ✓', 'success');
@@ -1084,8 +1235,8 @@ Pre-Workout – stock 8, sales 3/day, lead time 12 days, target 30 days, unit co
       setAgentStatus('done');
 
     } catch (err) {
-      addLog(`ГРЕШКА: ${err.message}`, 'error');
-      document.getElementById('results').innerHTML = `<div class="error-box" style="max-width:1200px;margin:0 auto 32px;padding:0 32px;">&gt; ERROR: ${err.message}</div>`;
+      addLog('ГРЕШКА: ' + err.message, 'error');
+      document.getElementById('results').innerHTML = '<div class="error-box" style="max-width:1200px;margin:0 auto 32px;padding:0 32px;">&gt; ERROR: ' + err.message + '</div>';
       setAgentStatus('ready');
     } finally {
       setBtnLoading(false);
